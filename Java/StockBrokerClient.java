@@ -121,16 +121,25 @@ public class StockBrokerClient {
                 .getTextContent();
 
             // parse conditions
-            above = Integer.parseInt(
-                rule.getElementsByTagName("above")
-                    .item(0)
-                    .getTextContent()
-                );
-            below = Integer.parseInt(
-                rule.getElementsByTagName("below")
-                    .item(0)
-                    .getTextContent()
-                );
+            try {
+                above = Integer.parseInt(
+                    rule.getElementsByTagName("above")
+                        .item(0)
+                        .getTextContent()
+                    );
+            } catch (NullPointerException e) {
+                above = -1;
+            }
+
+            try {
+                below = Integer.parseInt(
+                    rule.getElementsByTagName("below")
+                        .item(0)
+                        .getTextContent()
+                    );
+            } catch (NullPointerException e) {
+                below = -1;
+            }
             
             // parse actions (buy and sell are considered mutually exclusive)
             NodeList buyElems = rule.getElementsByTagName("buy");
