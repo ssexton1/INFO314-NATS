@@ -169,7 +169,9 @@ public class StockBrokerClient {
         }
 
         public String toString() {
-            return "If " + String.valueOf(above) + " > " + symbol + " > " + String.valueOf(below) + " then " + transaction.toString();
+            String aboveStr = above == -1 ? "-inf" : String.valueOf(above);
+            String belowStr = below == -1 ? "inf" : String.valueOf(below);
+            return "If " + aboveStr + " < " + symbol + " < " + belowStr + " then " + transaction.toString();
         }
     }
 
