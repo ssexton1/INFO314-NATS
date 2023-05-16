@@ -24,17 +24,21 @@ import io.nats.client.Nats;
 import io.nats.client.Subscription;
 
 /**
- * Usage: java StockBrokerClient [nats_url [path_to_strategy.xml]]
+ * Usage: java StockBrokerClient [nats_url] [path_to_strategy.xml] [portfolio.xml]
  */
 public class StockBrokerClient {
     private static final String PRICE_ADJUSTMENT_MSG_NAME = "PriceAdjustment";
+    private static final String ORDER_SUBJECT = "Order";
 
     public static void main(String[] args) {
         String natsURL = (args.length > 0 && args[0] != "") ? args[0] : "nats://127.0.0.1:4222";
-        String strategyPath = (args.length > 1 && args[1] != "") ? args[1] : "Clients/strategy-1.xml";
+        String strategyPath = (args.length > 1 && args[1] != "") ? args[1] : "/strategy-1.xml";
+        String portfolioPath = (args.length > 1 && args[1] != "") ? args[1] : "/portfolio-1.xml";
 
         try {
-            Strategy strategy = new Strategy(strategyPath);
+            Portfolio portfolio = new Portfolio(portfolioPath);
+            Strategy strategy = new Strategy(strategyPath, portfolio);
+            System.out.println(strategy.toString());
 
             Connection nc = Nats.connect(natsURL);
 
