@@ -348,8 +348,4 @@ public class StockBrokerClient {
             this.adjustedPriceCents = adjustedPriceCents;
         }
     }
-
-    // Future<Message> incoming = nc.request("subject", "hello world".getBytes(StandardCharsets.UTF_8));
-    // Message msg = incoming.get(500, TimeUnit.MILLISECONDS);
-    // String response = new String(msg.getData(), StandardCharsets.UTF_8);
 }
