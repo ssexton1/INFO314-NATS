@@ -39,8 +39,8 @@ public class StockBrokerClient {
 
     public static void main(String[] args) {
         String natsURL = (args.length > 0 && args[0] != "") ? args[0] : "nats://127.0.0.1:4222";
-        String strategyPath = (args.length > 1 && args[1] != "") ? args[1] : "/strategy-1.xml";
-        String portfolioPath = (args.length > 1 && args[1] != "") ? args[1] : "/portfolio-1.xml";
+        String strategyPath = (args.length > 1 && args[1] != "") ? args[1] : "strategy-1.xml";
+        String portfolioPath = (args.length > 2 && args[2] != "") ? args[2] : "portfolio-1.xml";
 
         try {
             Portfolio portfolio = new Portfolio(portfolioPath);
