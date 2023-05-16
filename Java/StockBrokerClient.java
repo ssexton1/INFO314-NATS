@@ -21,6 +21,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -53,7 +54,7 @@ public class StockBrokerClient {
             
             Dispatcher priceAdjustSubDispatcher = nc.createDispatcher((msg) -> {
                 try {
-                    handlePriceAdjust(msg, strategy, conn);
+                    handlePriceAdjust(msg, strategy, portfolio, conn);
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -66,7 +67,7 @@ public class StockBrokerClient {
         }
     }
 
-    private static void handlePriceAdjust(Message msg, Strategy strategy, Connection nc) throws ParserConfigurationException, IOException, SAXException {
+    private static void handlePriceAdjust(Message msg, Strategy strategy, Portfolio portfolio, Connection nc) throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         InputStream msgStream = new ByteArrayInputStream(msg.getData());
         Document msgDoc = docBuilder.parse(msgStream);
@@ -87,10 +88,14 @@ public class StockBrokerClient {
         }
 
         final Connection conn = nc; // prevent compiler complaining about non-final variable used in lambda
-        strategy.evaluate(stockPrices, txn -> { requestTransaction(txn, conn); });
+        strategy.evaluate(stockPrices, txn -> { try {
+            requestTransaction(txn, portfolio, conn);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } });
     }
 
-    private static void requestTransaction(StockTransaction transaction, Connection nc) throws InterruptedException, ExecutionException, TimeoutException {
+    private static void requestTransaction(StockTransaction transaction, Portfolio portfolio, Connection nc) throws InterruptedException, ExecutionException, TimeoutException, ParserConfigurationException, SAXException, IOException, TransformerException {
         String orderMsg = "<order><buy symbol=\"" +
             transaction.symbol +
             "\" amount=\"" +
@@ -98,8 +103,37 @@ public class StockBrokerClient {
             "\" /></order>";
         Future<Message> incoming = nc.request(ORDER_SUBJECT, orderMsg.getBytes(StandardCharsets.US_ASCII));
         Message msg = incoming.get(500, TimeUnit.MILLISECONDS);
-        String response = new String(msg.getData(), StandardCharsets.US_ASCII);
+        handleOrderReceipt(msg, portfolio);
+    }
 
+    private static void handleOrderReceipt(Message msg, Portfolio portfolio) throws ParserConfigurationException, SAXException, IOException, TransformerException {
+        DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        InputStream msgStream = new ByteArrayInputStream(msg.getData());
+        Document msgDoc = docBuilder.parse(msgStream);
+
+        NodeList sellElems = msgDoc.getElementsByTagName("sell");
+        for (int i = 0; i < sellElems.getLength(); i++) {
+            Element sell = (Element) sellElems.item(i);
+            String symbol = sell.getAttribute("symbol");
+            int amount = Integer.parseInt(sell.getAttribute("amount"));
+
+            portfolio.setShares(
+                symbol,
+                portfolio.getShares(symbol) - amount
+            );
+        }
+
+        NodeList buyElems = msgDoc.getElementsByTagName("buy");
+        for (int i = 0; i < buyElems.getLength(); i++) {
+            Element buy = (Element) buyElems.item(i);
+            String symbol = buy.getAttribute("symbol");
+            int amount = Integer.parseInt(buy.getAttribute("amount"));
+
+            portfolio.setShares(
+                symbol,
+                portfolio.getShares(symbol) + amount
+            );
+        }
     }
 
     private static class Portfolio {
