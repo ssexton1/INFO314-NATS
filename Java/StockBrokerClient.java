@@ -159,6 +159,10 @@ public class StockBrokerClient {
             }
             return false;
         }
+
+        public String toString() {
+            return "If " + String.valueOf(above) + " > " + symbol + " > " + String.valueOf(below) + " then " + transaction.toString();
+        }
     }
 
     /**
@@ -173,6 +177,17 @@ public class StockBrokerClient {
         public StockTransaction(String type, int shares) {
             this.type = type;
             this.shares = shares;
+        }
+
+        public String toString() {
+            String out = type + " ";
+            if (shares == -1) {
+                out += "all";
+            } else {
+                out += String.valueOf(shares);
+            }
+            out += " shares";
+            return out;
         }
     }
 
