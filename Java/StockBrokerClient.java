@@ -76,8 +76,11 @@ public class StockBrokerClient {
 
     private static class Strategy {
         Rule[] rules;
+        Portfolio portfolio;
 
-        public Strategy(String strategyPath) throws ParserConfigurationException, IOException, SAXException {
+        public Strategy(String strategyPath, Portfolio portfolio) throws ParserConfigurationException, IOException, SAXException {
+            this.portfolio = portfolio;
+
             DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             File strategyFile = new File(strategyPath);
             Document strategy = docBuilder.parse(strategyFile);
@@ -90,10 +93,16 @@ public class StockBrokerClient {
             }
         }
 
-        public void evaluate(StockPrice stockPrice, Function<StockTransaction, Void> placeTransaction) {
-            for (Rule rule : rules) {
-                if (rule.signalRaised(stockPrice)) {
-                    placeTransaction.apply(rule.transaction);
+        public void evaluate(StockPrice[] stockPrices, Consumer<StockTransaction> placeTransaction) {
+            for (StockPrice stockPrice: stockPrices) {
+                for (Rule rule : rules) {
+                    if (rule.signalRaised(stockPrice)) {
+                        placeTransaction.accept(new StockTransaction(
+                            rule.transaction.symbol,
+                            rule.transaction.type,
+                            rule.transaction.shares == -1 ? this.portfolio.getShares(rule.transaction.symbol) : rule.transaction.shares
+                        ));
+                    }
                 }
             }
         }
