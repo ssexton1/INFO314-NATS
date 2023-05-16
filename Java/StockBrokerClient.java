@@ -182,7 +182,8 @@ public class StockBrokerClient {
         public String type; // either "buy" or "sell"
         public int shares;
 
-        public StockTransaction(String type, int shares) {
+        public StockTransaction(String symbol, String type, int shares) {
+            this.symbol = symbol;
             this.type = type;
             this.shares = shares;
         }
