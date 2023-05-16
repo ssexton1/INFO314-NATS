@@ -3,9 +3,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -47,10 +49,11 @@ public class StockBrokerClient {
             System.out.println(strategy.toString());
 
             Connection nc = Nats.connect(natsURL);
-
+            final Connection conn = nc; // prevent compiler complaining about non-final variable used in lambda
+            
             Dispatcher priceAdjustSubDispatcher = nc.createDispatcher((msg) -> {
                 try {
-                    handlePriceAdjust(msg, strategy);
+                    handlePriceAdjust(msg, strategy, conn);
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -63,7 +66,7 @@ public class StockBrokerClient {
         }
     }
 
-    private static void handlePriceAdjust(Message msg, Strategy strategy) throws ParserConfigurationException, IOException, SAXException {
+    private static void handlePriceAdjust(Message msg, Strategy strategy, Connection nc) throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         InputStream msgStream = new ByteArrayInputStream(msg.getData());
         Document msgDoc = docBuilder.parse(msgStream);
@@ -82,6 +85,23 @@ public class StockBrokerClient {
 
             stockPrices[i] = new StockPrice(symbol, Integer.parseInt(adjustedPriceCents));
         }
+
+        final Connection conn = nc; // prevent compiler complaining about non-final variable used in lambda
+        strategy.evaluate(stockPrices, txn -> { requestTransaction(txn, conn); });
+    }
+
+    private static void requestTransaction(StockTransaction transaction, Connection nc) throws InterruptedException, ExecutionException, TimeoutException {
+        String orderMsg = "<order><buy symbol=\"" +
+            transaction.symbol +
+            "\" amount=\"" +
+            transaction.shares +
+            "\" /></order>";
+        Future<Message> incoming = nc.request(ORDER_SUBJECT, orderMsg.getBytes(StandardCharsets.US_ASCII));
+        Message msg = incoming.get(500, TimeUnit.MILLISECONDS);
+        String response = new String(msg.getData(), StandardCharsets.US_ASCII);
+
+    }
+
     private static class Portfolio {
         private Document document;
         private String path;
@@ -174,7 +194,7 @@ public class StockBrokerClient {
         public String toString() {
             String out = "Strategy with rules:\n";
             for (Rule rule : rules) {
-                out += rule.toString() + "\n";
+                out += "\t" + rule.toString() + "\n";
             }
             return out;
         }
