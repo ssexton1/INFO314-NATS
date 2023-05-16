@@ -72,6 +72,60 @@ public class StockBrokerClient {
 
             stockPrices[i] = new StockPrice(symbol, Integer.parseInt(adjustedPriceCents));
         }
+    private static class Portfolio {
+        private Document document;
+        private String path;
+    
+        public Portfolio(String portfolioPath) throws ParserConfigurationException, IOException, SAXException {
+            DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            path = portfolioPath;
+            document = docBuilder.parse(new File(path));
+        }
+    
+        public int getShares(String symbol) {
+            Element portfolioElement = document.getDocumentElement();
+            NodeList stockNodes = portfolioElement.getElementsByTagName("stock");
+    
+            for (int i = 0; i < stockNodes.getLength(); i++) {
+                Node stockNode = stockNodes.item(i);
+                if (stockNode.getNodeType() == Node.ELEMENT_NODE) {
+                    Element stockElement = (Element) stockNode;
+                    String stockSymbol = stockElement.getAttribute("symbol");
+                    if (stockSymbol.equals(symbol)) {
+                        String sharesText = stockElement.getTextContent();
+                        return Integer.parseInt(sharesText);
+                    }
+                }
+            }
+            return 0;
+        }
+    
+        public void setShares(String symbol, int shares) throws TransformerException {
+            Element portfolioElement = document.getDocumentElement();
+            NodeList stockNodes = portfolioElement.getElementsByTagName("stock");
+    
+            for (int i = 0; i < stockNodes.getLength(); i++) {
+                Node stockNode = stockNodes.item(i);
+                if (stockNode.getNodeType() == Node.ELEMENT_NODE) {
+                    Element stockElement = (Element) stockNode;
+                    String stockSymbol = stockElement.getAttribute("symbol");
+                    if (stockSymbol.equals(symbol)) {
+                        stockElement.setTextContent(Integer.toString(shares));
+                        break;
+                    }
+                }
+            }
+            save();
+        }
+
+        private void save() throws TransformerException {
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+    
+            DOMSource source = new DOMSource(document);
+            StreamResult result = new StreamResult(new File(path));
+            transformer.transform(source, result);
+        }
     }
 
     private static class Strategy {
