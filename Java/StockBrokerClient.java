@@ -97,6 +97,14 @@ public class StockBrokerClient {
                 }
             }
         }
+
+        public String toString() {
+            String out = "Strategy with rules:\n";
+            for (Rule rule : rules) {
+                out += rule.toString() + "\n";
+            }
+            return out;
+        }
     }
 
     private static class Rule {
