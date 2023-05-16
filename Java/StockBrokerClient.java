@@ -136,16 +136,16 @@ public class StockBrokerClient {
             NodeList buyElems = rule.getElementsByTagName("buy");
             if (buyElems.getLength() > 0) {
                 int shares = Integer.parseInt(buyElems.item(0).getTextContent());
-                transaction = new StockTransaction("buy", shares);
+                transaction = new StockTransaction(symbol, "buy", shares);
             }
 
             NodeList sellElems = rule.getElementsByTagName("sell");
             if (sellElems.getLength() > 0) {
                 try {
                     int shares = Integer.parseInt(sellElems.item(0).getTextContent());
-                    transaction = new StockTransaction("sell", shares);
+                    transaction = new StockTransaction(symbol, "sell", shares);
                 } catch (NumberFormatException e) {
-                    transaction = new StockTransaction("sell", -1); // sell all available shares
+                    transaction = new StockTransaction(symbol, "sell", -1); // sell all available shares
                 }
             }
         }
