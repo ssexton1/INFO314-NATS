@@ -17,20 +17,18 @@ import io.nats.client.Dispatcher;
 import io.nats.client.Message;
 
 public class StockBroker {
-  // private String name;
   private static Map<String, Integer> marketPrices = new HashMap<>();
-
-  // public StockBroker(String name) {
-  //   this.name = name;
-  // }
 
   public static void main(String... args) {
     String natsURL = "nats://127.0.0.1:4222";
-    if (args.length > 0) {
-      natsURL = args[0];
-    }
+    // if (args.length > 0) {
+    //   natsURL = args[0];
+    // }
 
-    try (Connection nc = Nats.connect(natsURL)) {
+    String name = args[0];
+
+    try {
+      Connection nc = Nats.connect(natsURL);
       Dispatcher market = nc.createDispatcher((msg) -> {
         try {
           updatePrices(msg);
@@ -49,7 +47,21 @@ public class StockBroker {
         }
       });
 
-      request.subscribe("Order");
+      request.subscribe("Order." + name);
+
+      // Test publishing updates from the StockPublisher (market updates)
+      String marketChange =
+        "<message><stock><name>DOG</name><adjustment>5</adjustment><adjustedPrice>100800</adjustedPrice></stock></message>";
+
+      nc.publish("PriceAdjustment", marketChange.getBytes());
+
+      // Test requests from the StockBrokerClient (orders)
+      String order = "<order><buy symbol=\"DOG\" amount=\"5\" /></order>";
+      Message response = nc.request("Order.bob", order.getBytes(), Duration.ofSeconds(1));
+
+      System.out.println("Response seen by StockBrokerClient:");
+      System.out.println(new String(response.getSubject()));
+      System.out.println(new String(response.getData()));
 
     } catch (Exception e) {
       e.printStackTrace();
