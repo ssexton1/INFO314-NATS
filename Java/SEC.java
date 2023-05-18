@@ -31,9 +31,6 @@ public class SEC {
       Connection nc = Nats.connect(natsURL);
       Dispatcher market = nc.createDispatcher((msg) -> {
         try {
-          System.out.printf("%s on subject %s\n",
-            new String(msg.getData()),
-            msg.getSubject());
           processMessage(msg);
         } catch (Exception e) {
           e.printStackTrace();
@@ -124,7 +121,6 @@ public class SEC {
 
 
   private static void logSuspicions(String log) throws Exception {
-    System.out.println(STARTPATH);
     File newFile = new File(STARTPATH + "/suspicions.log");
     newFile.createNewFile();
 

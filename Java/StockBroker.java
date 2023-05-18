@@ -49,20 +49,6 @@ public class StockBroker {
 
       request.subscribe("Order." + name);
 
-      // Test publishing updates from the StockPublisher (market updates)
-      String marketChange =
-        "<message><stock><name>DOG</name><adjustment>5</adjustment><adjustedPrice>100800</adjustedPrice></stock></message>";
-
-      nc.publish("PriceAdjustment", marketChange.getBytes());
-
-      // Test requests from the StockBrokerClient (orders)
-      String order = "<order><buy symbol=\"DOG\" amount=\"5\" /></order>";
-      Message response = nc.request("Order.bob", order.getBytes(), Duration.ofSeconds(1));
-
-      System.out.println("Response seen by StockBrokerClient:");
-      System.out.println(new String(response.getSubject()));
-      System.out.println(new String(response.getData()));
-
     } catch (Exception e) {
       e.printStackTrace();
     }
