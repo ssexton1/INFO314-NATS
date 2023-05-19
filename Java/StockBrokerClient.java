@@ -34,7 +34,7 @@ import io.nats.client.Nats;
  * Usage: java StockBrokerClient [nats_url] [path_to_strategy.xml] [portfolio.xml]
  */
 public class StockBrokerClient {
-    private static final String PRICE_ADJUSTMENT_SUBJECT = "PriceAdjustment";
+    private static final String PRICE_ADJUSTMENT_SUBJECT = "PriceAdjustment.*";
     private static final String ORDER_SUBJECT = "Order";
 
     public static void main(String[] args) {
