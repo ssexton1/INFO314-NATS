@@ -78,11 +78,12 @@ public class StockBrokerClient {
             String symbol = stock.getElementsByTagName("name")
                 .item(0)
                 .getTextContent();
-            String adjustedPriceCents = stock.getElementsByTagName("name")
+            String adjustedPriceCents = stock.getElementsByTagName("adjustedPrice")
                 .item(0)
                 .getTextContent();
 
             stockPrices[i] = new StockPrice(symbol, Integer.parseInt(adjustedPriceCents));
+            System.out.println(stockPrices[i].toString());
         }
 
         final Connection conn = nc; // prevent compiler complaining about non-final variable used in lambda
@@ -94,7 +95,10 @@ public class StockBrokerClient {
     }
 
     private static void requestTransaction(StockTransaction transaction, Portfolio portfolio, Connection nc) throws InterruptedException, ExecutionException, TimeoutException, ParserConfigurationException, SAXException, IOException, TransformerException {
-        String orderMsg = "<order><buy symbol=\"" +
+        System.out.println(transaction.toString());
+        String orderMsg = "<order><" +
+            transaction.type +
+            "buy symbol=\"" +
             transaction.symbol +
             "\" amount=\"" +
             transaction.shares +
@@ -139,12 +143,12 @@ public class StockBrokerClient {
         private String path;
     
         public Portfolio(String portfolioPath) throws ParserConfigurationException, IOException, SAXException {
-            DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             path = portfolioPath;
-            document = docBuilder.parse(new File(path));
+            load();
         }
     
-        public int getShares(String symbol) {
+        public int getShares(String symbol) throws ParserConfigurationException, SAXException, IOException {
+            load();
             Element portfolioElement = document.getDocumentElement();
             NodeList stockNodes = portfolioElement.getElementsByTagName("stock");
     
@@ -180,6 +184,11 @@ public class StockBrokerClient {
             save();
         }
 
+        private void load() throws ParserConfigurationException, SAXException, IOException {
+            DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            document = docBuilder.parse(new File(path));
+        }
+
         private void save() throws TransformerException {
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -209,7 +218,7 @@ public class StockBrokerClient {
             }
         }
 
-        public void evaluate(StockPrice[] stockPrices, Consumer<StockTransaction> placeTransaction) {
+        public void evaluate(StockPrice[] stockPrices, Consumer<StockTransaction> placeTransaction) throws ParserConfigurationException, SAXException, IOException {
             for (StockPrice stockPrice: stockPrices) {
                 for (Rule rule : rules) {
                     if (rule.signalRaised(stockPrice)) {
@@ -332,6 +341,7 @@ public class StockBrokerClient {
                 out += String.valueOf(shares);
             }
             out += " shares";
+            out += " of " + symbol;
             return out;
         }
     }
@@ -346,6 +356,10 @@ public class StockBrokerClient {
         public StockPrice(String symbol, int adjustedPriceCents) {
             this.symbol = symbol;
             this.adjustedPriceCents = adjustedPriceCents;
+        }
+
+        public String toString() {
+            return symbol + " " + String.valueOf(adjustedPriceCents);
         }
     }
 }
