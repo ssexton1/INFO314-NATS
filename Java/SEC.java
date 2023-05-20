@@ -20,12 +20,10 @@ import io.nats.client.Message;
 public class SEC {
   private static String STARTPATH = System.getProperty("user.dir");
   private static String BROKER = "";
+  private static String CLIENT = "";
 
   public static void main(String... args) {
     String natsURL = "nats://127.0.0.1:4222";
-    // if (args.length > 0) {
-    //   natsURL = args[0];
-    // }
 
     try {
       Connection nc = Nats.connect(natsURL);
@@ -70,6 +68,7 @@ public class SEC {
     String subject = new String(msg.getSubject());
     String[] subjectArr = subject.split("[.]");
     BROKER = subjectArr[1];
+    CLIENT = subjectArr[2];
   }
 
 
@@ -88,17 +87,15 @@ public class SEC {
 
       Node orderSent = orderReceipt.getFirstChild();
 
-      String client = new String(msg.getSubject());
-
       Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
-      buildLog(doc, timestamp, client, orderSent, totalCost);
+      buildLog(doc, timestamp, orderSent, totalCost);
     }
 
   }
 
 
-  private static void buildLog(Document doc, Timestamp time, String client, Node orderSent, String totalCost) throws Exception {
+  private static void buildLog(Document doc, Timestamp time, Node orderSent, String totalCost) throws Exception {
     StringBuilder sb = new StringBuilder();
     XPath xPath = XPathFactory.newInstance().newXPath();
 
@@ -111,7 +108,7 @@ public class SEC {
       doc, XPathConstants.STRING);
 
     sb.append("Timestamp: " + time + ", ");
-    sb.append("Client: " + client + ", ");
+    sb.append("Client: " + CLIENT + ", ");
     sb.append("Broker: " + BROKER + ", ");
     sb.append("Order Sent: <" + orderType + " symbol=\"" + symbol + "\" amount=\"" + amount + "\" />");
     sb.append("Amount: " + totalCost + "\n");

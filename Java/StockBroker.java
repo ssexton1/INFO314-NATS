@@ -21,9 +21,6 @@ public class StockBroker {
 
   public static void main(String... args) {
     String natsURL = "nats://127.0.0.1:4222";
-    // if (args.length > 0) {
-    //   natsURL = args[0];
-    // }
 
     String name = args[0];
 
@@ -37,7 +34,7 @@ public class StockBroker {
         }
       });
 
-      market.subscribe("PriceAdjustment");
+      market.subscribe("PriceAdjustment.*");
 
       Dispatcher request = nc.createDispatcher((msg) -> {
         try {
@@ -47,7 +44,7 @@ public class StockBroker {
         }
       });
 
-      request.subscribe("Order." + name);
+      request.subscribe("Order." + name + ".*");
 
     } catch (Exception e) {
       e.printStackTrace();
