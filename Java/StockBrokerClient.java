@@ -31,16 +31,19 @@ import io.nats.client.Message;
 import io.nats.client.Nats;
 
 /**
- * Usage: java StockBrokerClient [nats_url] [path_to_strategy.xml] [portfolio.xml]
+ * Usage: java StockBrokerClient [client_name] [stockbroker_name] [nats_url] [path_to_strategy.xml] [portfolio.xml]
  */
 public class StockBrokerClient {
     private static final String PRICE_ADJUSTMENT_SUBJECT = "PriceAdjustment.*";
-    private static final String ORDER_SUBJECT = "Order";
+    private static final String ORDER_SUBJECT_PREFIX = "Order.";
+    private static String ORDER_SUBJECT;
 
     public static void main(String[] args) {
-        String natsURL = (args.length > 0 && args[0] != "") ? args[0] : "nats://127.0.0.1:4222";
-        String strategyPath = (args.length > 1 && args[1] != "") ? args[1] : "strategy-1.xml";
-        String portfolioPath = (args.length > 2 && args[2] != "") ? args[2] : "portfolio-1.xml";
+        ORDER_SUBJECT = ORDER_SUBJECT_PREFIX + args[1]; // broker name
+        ORDER_SUBJECT += "." + args[0]; // client name
+        String natsURL = (args.length > 2 && args[2] != "") ? args[2] : "nats://127.0.0.1:4222";
+        String strategyPath = (args.length > 3 && args[3] != "") ? args[3] : "strategy-1.xml";
+        String portfolioPath = (args.length > 4 && args[4] != "") ? args[4] : "portfolio-1.xml";
 
         try {
             Portfolio portfolio = new Portfolio(portfolioPath);
