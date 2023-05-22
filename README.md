@@ -134,6 +134,8 @@ For all of this, create a video or separate videos demonstrating that your imple
 
 Alternatively, if you are camera shy or find it difficult to record a video for some reason, you may schedule time with the TA to show them your running code. However, this is *at the TA's discretion* and is in no way an obligation on their part--the video is the far more scalable option from our perspective.
 
+**Video Link:** https://drive.google.com/drive/folders/1QyAo5QSkLKFrJ5Uy_gJTBZ9ZvElnfChy?usp=sharing 
+
 ## Extra Credit
 
 ### Secure it! (3 pts)
