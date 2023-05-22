@@ -101,7 +101,7 @@ public class StockBrokerClient {
         System.out.println(transaction.toString());
         String orderMsg = "<order><" +
             transaction.type +
-            "buy symbol=\"" +
+            " symbol=\"" +
             transaction.symbol +
             "\" amount=\"" +
             transaction.shares +
