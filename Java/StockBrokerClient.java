@@ -86,7 +86,6 @@ public class StockBrokerClient {
                 .getTextContent();
 
             stockPrices[i] = new StockPrice(symbol, Integer.parseInt(adjustedPriceCents));
-            System.out.println(stockPrices[i].toString());
         }
 
         final Connection conn = nc; // prevent compiler complaining about non-final variable used in lambda
@@ -194,7 +193,6 @@ public class StockBrokerClient {
 
         private void save() throws TransformerException {
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
     
             DOMSource source = new DOMSource(document);
             StreamResult result = new StreamResult(new File(path));
